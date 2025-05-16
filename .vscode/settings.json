@@ -1,0 +1,8 @@
+{
+    "editor.tokenColorCustomizations": {
+        "comments": "#c3c67d",
+        "textMateRules": []
+    },
+    "python.analysis.typeCheckingMode": "off",
+    "python.analysis.autoImportCompletions": true
+}
