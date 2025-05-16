@@ -1,25 +1,28 @@
 FROM python:3.12-slim
 
-# Install required system packages
+# Install required system dependencies for Manim and rendering
 RUN apt-get update && apt-get install -y \
-    pkg-config \
+    ffmpeg \
     libcairo2-dev \
     libpango1.0-dev \
+    pkg-config \
     python3-dev \
     build-essential \
     && rm -rf /var/lib/apt/lists/*
 
-# Set work directory
+# Set working directory
 WORKDIR /app
 
-# Copy and install dependencies
+# Copy requirements and install Python dependencies
 COPY requirements.txt .
 RUN pip install --upgrade pip
 RUN pip install -r requirements.txt
 
-# Copy app code
-COPY . .
+# Copy the application code
+COPY src/ .
 
-# Expose port and set default run command
+# Expose FastAPI port
 EXPOSE 8000
-CMD ["uvicorn", "src.app:app", "--host", "0.0.0.0", "--port", "8000"]
+
+# Start FastAPI with uvicorn
+CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8000"]
