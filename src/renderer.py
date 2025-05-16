@@ -3,7 +3,7 @@ import shutil
 from subprocess import run
 from dotenv import load_dotenv
 from supabase import create_client, Client
-from .models import RenderRequest, RenderResponse
+from models import RenderRequest, RenderResponse
 
 load_dotenv()
 

@@ -1,6 +1,7 @@
+# src/app.py
 from fastapi import FastAPI, HTTPException
-from .models import RenderRequest, RenderResponse
-from .renderer import render
+from models import RenderRequest, RenderResponse
+from renderer import render
 
 app = FastAPI()
 
