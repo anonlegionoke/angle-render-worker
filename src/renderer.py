@@ -36,14 +36,15 @@ async def render(code: str, scene_name: str, job_id: str, project_id: str = None
 
         create_dir(data, job_dir, media_dir, py_path)
         
-        run(["manim", "render", "--quality=low", "--fps=15", "--disable_caching", "--media_dir", media_dir, "--output_file", "final.mp4", py_path, data.scene_name], check=True)
+        run(["manim", "render", "--quality=l", "--fps=30", "--disable_caching", "--media_dir", media_dir, "--output_file", "final.mp4", py_path, data.scene_name], check=True)
         
-        output_path = os.path.join(media_dir, "videos", "scene", "480p15", "final.mp4")
+        output_path = os.path.join(media_dir, "videos", "scene", "480p30", "final.mp4")
         
         video_url = output_path
 
         if supabase_client:
             try:
+                print(f"Uploading to Supabase: {video_url}")
                 video_url = await upload_to_supabase(output_path, job_id, scene_name)
                 print(f"Uploaded to Supabase: {video_url}")
             except Exception as e:
@@ -63,24 +64,33 @@ async def render(code: str, scene_name: str, job_id: str, project_id: str = None
 
 # Upload to Supabase
 async def upload_to_supabase(file_path: str, job_id: str, scene_name: str) -> str:
-    """Upload a file to Supabase Storage and return the public URL"""
+    """Upload a file to Supabase Storage and return a signed URL"""
     if not supabase_client:
         raise ValueError("Supabase client not initialized. Check your environment variables.")
-    
-    file_name = f"video.mp4"
-    
+
+    file_name = f"video_{job_id}.mp4"
+
     with open(file_path, 'rb') as f:
         file_data = f.read()
-    
+
     response = supabase_client.storage.from_(SUPABASE_BUCKET).upload(
-        file_name,
-        file_data,
-        {'content-type': 'video/mp4'}
+        path=file_name,
+        file=file_data,
+        file_options={"content-type": "video/mp4"},
     )
-    
-    public_url = supabase_client.storage.from_(SUPABASE_BUCKET).get_public_url(file_name)
-    
-    return public_url
+
+    if isinstance(response, dict) and response.get("error"):
+        raise RuntimeError(f"Failed to upload: {response['error']['message']}")
+
+    signed_url_response = supabase_client.storage.from_(SUPABASE_BUCKET).create_signed_url(
+        path=file_name,
+        expires_in=604800  # 7 days
+    )
+
+    if isinstance(signed_url_response, dict) and signed_url_response.get("error"):
+        raise RuntimeError(f"Failed to create signed URL: {signed_url_response['error']['message']}")
+
+    return signed_url_response["signedURL"]
 
 
 # Directory Management   
