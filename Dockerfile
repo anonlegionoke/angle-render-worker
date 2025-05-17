@@ -8,6 +8,12 @@ RUN apt-get update && apt-get install -y \
     pkg-config \
     python3-dev \
     build-essential \
+    texlive-latex-base \
+    texlive-fonts-recommended \
+    texlive-latex-recommended \
+    texlive-latex-extra \
+    texlive-fonts-extra \
+    dvipng \
     && rm -rf /var/lib/apt/lists/*
 
 # Set working directory

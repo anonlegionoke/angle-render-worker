@@ -36,9 +36,9 @@ async def render(code: str, scene_name: str, job_id: str, project_id: str = None
 
         create_dir(data, job_dir, media_dir, py_path)
         
-        run(["manim", "render", "--disable_caching", "--media_dir", media_dir, "--output_file", "final.mp4", py_path, data.scene_name], check=True)
+        run(["manim", "render", "--quality=low", "--fps=15", "--disable_caching", "--media_dir", media_dir, "--output_file", "final.mp4", py_path, data.scene_name], check=True)
         
-        output_path = os.path.join(media_dir, "videos", "scene", "1080p60", "final.mp4")
+        output_path = os.path.join(media_dir, "videos", "scene", "480p15", "final.mp4")
         
         video_url = output_path
 
@@ -58,7 +58,7 @@ async def render(code: str, scene_name: str, job_id: str, project_id: str = None
     except Exception as e:
         if job_dir:
             cleanup_job_dir(job_dir)
-        return {"Failed to render": str(e)}
+        raise RuntimeError("Failed to render: Command exited with SIGKILL.")
 
 
 # Upload to Supabase
