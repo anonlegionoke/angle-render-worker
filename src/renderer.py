@@ -59,7 +59,7 @@ async def render(code: str, scene_name: str, job_id: str, project_id: str = None
     except Exception as e:
         if job_dir:
             cleanup_job_dir(job_dir)
-        raise RuntimeError("Failed to render: Command exited with SIGKILL.")
+        raise RuntimeError(f"Failed to render: {str(e)}")
 
 
 # Upload to Supabase
