@@ -62,6 +62,8 @@ The service runs on port 8000 by default. API documentation is available at `/do
 
 This service is designed to work alongside the main Angle NextJS application. The main application should be configured to send rendering requests to this service's API endpoints.
 
+Check Repo - https://github.com/anonlegionoke/angle
+
 ## License
 
 MIT
