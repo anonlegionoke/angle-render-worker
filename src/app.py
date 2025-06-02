@@ -14,3 +14,13 @@ async def render_video(data: RenderRequest):
         return RenderResponse(video_url=video_url)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+    
+@app.post("/process_frames")
+async def process_frames(data: RenderRequest):
+    try:
+        video_url = await render(
+            data.code, data.scene_name, data.job_id, data.project_id
+        )
+        return RenderResponse(video_url=video_url)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
