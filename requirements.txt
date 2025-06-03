@@ -4,3 +4,4 @@ supabase
 python-multipart
 manim
 python-dotenv
+requests
