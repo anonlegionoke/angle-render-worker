@@ -2,6 +2,7 @@
 from fastapi import FastAPI, HTTPException
 from models import RenderRequest, RenderResponse
 from renderer import render
+from processor import delete_all_thumbnails, generate_thumbnails
 
 app = FastAPI()
 
@@ -12,5 +13,21 @@ async def render_video(data: RenderRequest):
             data.code, data.scene_name, data.job_id, data.project_id
         )
         return RenderResponse(video_url=video_url)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    
+@app.post("/frames")
+async def process_frames(data):
+    try:
+        response = generate_thumbnails(data.video_url)
+        return response
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    
+@app.delete("/frames")
+async def clear_thumbnails():
+    try:
+        delete_all_thumbnails()
+        return {"message": "All thumbnails deleted"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
