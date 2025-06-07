@@ -6,7 +6,7 @@ load_dotenv()
 SUPABASE_URL = os.environ.get('SUPABASE_URL')
 SUPABASE_KEY = os.environ.get('SUPABASE_KEY')
 SUPABASE_BUCKET = os.environ.get('SUPABASE_BUCKET')
-SUPABASE_FRAMES_BUCKET = os.environ.get('SUPABASE_FRAMES_BUCKET')  # fixed typo
+SUPABASE_FRAMES_BUCKET = os.environ.get('SUPABASE_FRAMES_BUCKET')
 
 supabase_client: Client | None = None
 
