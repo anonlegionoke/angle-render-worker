@@ -2,8 +2,8 @@ import os
 import shutil
 from subprocess import run
 from dotenv import load_dotenv
-from supabase import create_client, Client
-from models import RenderRequest, RenderResponse
+from models import RenderRequest
+from supabase_config import supabase_client, SUPABASE_BUCKET
 
 load_dotenv()
 
@@ -11,20 +11,6 @@ load_dotenv()
 PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
 STORAGE_DIR = os.environ.get('STORAGE_DIR', os.path.join(PROJECT_ROOT, 'storage'))
 os.makedirs(STORAGE_DIR, exist_ok=True)
-
-# Supabase Configuration
-SUPABASE_URL = os.environ.get('SUPABASE_URL')
-SUPABASE_KEY = os.environ.get('SUPABASE_KEY')
-SUPABASE_BUCKET = os.environ.get('SUPABASE_BUCKET')
-
-supabase_client = None
-if SUPABASE_URL and SUPABASE_KEY:
-    try:
-        supabase_client = create_client(SUPABASE_URL, SUPABASE_KEY)
-        print(f"Supabase client initialized")
-    except Exception as e:
-        print(f"Failed to initialize Supabase client: {e}")
-
 
 # The RENDER Function
 async def render(code: str, scene_name: str, job_id: str, project_id: str = None):
@@ -63,7 +49,7 @@ async def render(code: str, scene_name: str, job_id: str, project_id: str = None
 
 
 # Upload to Supabase
-async def upload_to_supabase(file_path: str, job_id: str, scene_name: str) -> str:
+async def upload_to_supabase(file_path: str, job_id: str) -> str:
     """Upload a file to Supabase Storage and return a signed URL"""
     if not supabase_client:
         raise ValueError("Supabase client not initialized. Check your environment variables.")
