@@ -25,10 +25,9 @@ COPY . .
 RUN mkdir -p public/thumbnails tmp
 
 # Set environment variables
-ENV PYTHONPATH=/app
 ENV PYTHONUNBUFFERED=1
 
 EXPOSE 8000
 
 # Use the same command as railway.toml for consistency
-CMD ["uvicorn", "src.app:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8000"]
