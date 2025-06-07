@@ -1,4 +1,5 @@
 from pydantic import BaseModel
+from typing import Optional
 
 class RenderRequest(BaseModel):
     code: str
@@ -8,3 +9,7 @@ class RenderRequest(BaseModel):
 
 class RenderResponse(BaseModel):
     video_url: str
+
+class FrameRequest(BaseModel):
+    videoUrl: Optional[str] = None
+    promptId: Optional[str] = None
