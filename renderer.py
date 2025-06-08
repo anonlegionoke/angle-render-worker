@@ -31,7 +31,7 @@ async def render(code: str, scene_name: str, job_id: str, project_id: str = None
         if supabase_client:
             try:
                 print(f"Uploading to Supabase: {video_url}")
-                video_url = await upload_to_supabase(output_path, job_id, scene_name)
+                video_url = await upload_to_supabase(output_path, job_id)
                 print(f"Uploaded to Supabase: {video_url}")
             except Exception as e:
                 print(f"Failed to upload to Supabase: {e}")
