@@ -1,5 +1,6 @@
 import os
 import shutil
+from pydantic import InstanceOf
 import requests
 import subprocess
 from supabase_config import supabase_client, SUPABASE_FRAMES_BUCKET
@@ -28,6 +29,29 @@ def generate_thumbnails(video_url: str, prompt_id: str) -> list[str]:
     output_dir = os.path.join(THUMBNAILS_DIR, video_id)
 
     try:
+        # Check whether frames already exists for the prompt
+        existing_frames = supabase_client.storage.from_(SUPABASE_FRAMES_BUCKET).list(path=video_id)
+        
+        if isinstance(existing_frames, list):
+            frames = [ f for f in existing_frames
+                      if video_id in f['name']]
+            if frames:
+                print("Frames already exist")
+                for frame in frames:
+                    supabase_path = f"{video_id}/{frame['name']}"
+                    signed_url_response = supabase_client.storage.from_(SUPABASE_FRAMES_BUCKET).create_signed_url(
+                        path=supabase_path,
+                        expires_in=604800  # 7 days
+                    )
+                    if isinstance(signed_url_response, dict) and signed_url_response.get("error"):
+                        print(f"Failed to create signed URL for {frame['name']}: {signed_url_response['error']['message']}")
+                        continue
+
+                    signed_urls.append(signed_url_response["signedURL"])
+                return signed_urls
+        else:
+            []
+        
         if not video_url:
             raise ValueError("Missing video URL")
 
