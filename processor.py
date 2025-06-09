@@ -30,7 +30,7 @@ def generate_thumbnails(video_url: str, prompt_id: str) -> list[str]:
 
     try:
         # Check whether frames already exists for the prompt
-        existing_frames = supabase_client.storage.from_(SUPABASE_FRAMES_BUCKET).list(path=video_id)
+        existing_frames = supabase_client.storage.from_(SUPABASE_FRAMES_BUCKET).list(path=prompt_id)
         
         if isinstance(existing_frames, list):
             frames = [ f for f in existing_frames
@@ -57,7 +57,7 @@ def generate_thumbnails(video_url: str, prompt_id: str) -> list[str]:
 
         response = requests.get(video_url, stream=True)
         if response.status_code != 200:
-            raise RuntimeError("Failed to download video")
+            raise RuntimeError("Failed to download video")        
 
         with open(input_path, 'wb') as f:
             shutil.copyfileobj(response.raw, f)
