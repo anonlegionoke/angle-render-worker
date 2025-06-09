@@ -59,8 +59,9 @@ async def upload_to_supabase(file_path: str, job_id: str) -> str:
     with open(file_path, 'rb') as f:
         file_data = f.read()
 
+    supabase_path = f"{job_id}/{file_name}"
     response = supabase_client.storage.from_(SUPABASE_BUCKET).upload(
-        path=file_name,
+        path=supabase_path,
         file=file_data,
         file_options={"content-type": "video/mp4"},
     )
@@ -69,7 +70,7 @@ async def upload_to_supabase(file_path: str, job_id: str) -> str:
         raise RuntimeError(f"Failed to upload: {response['error']['message']}")
 
     signed_url_response = supabase_client.storage.from_(SUPABASE_BUCKET).create_signed_url(
-        path=file_name,
+        path=supabase_path,
         expires_in=604800  # 7 days
     )
 
