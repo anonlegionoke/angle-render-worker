@@ -14,7 +14,7 @@ async def health_check():
 async def render_video(data: RenderRequest):
     try:
         video_url = await render(
-            data.code, data.scene_name, data.job_id, data.project_id
+            data.code, data.job_id, data.project_id
         )
         return RenderResponse(video_url=video_url)
     except Exception as e:

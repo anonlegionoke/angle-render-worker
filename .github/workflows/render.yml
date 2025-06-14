@@ -1,0 +1,53 @@
+name: Angle Render Worker
+
+on:
+  workflow_dispatch:
+    inputs:
+      script_url:
+        description: "URL to user Python code file"
+        required: true
+      job_id:
+        description: "Prompt ID"
+        required: true
+      project_id:
+        description: "Project ID"
+        required: true
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v3
+
+      - name: Install ffmpeg
+        run: sudo apt-get update && sudo apt-get install -y ffmpeg
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Download User Code
+        run: curl -L -o user_code.py "${{ github.event.inputs.script_url }}"
+
+      - name: Run Worker
+        env:
+          CODE_FILE: user_code.py
+          JOB_ID: ${{ github.event.inputs.job_id }}
+          PROJECT_ID: ${{ github.event.inputs.project_id }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+        run: python worker.py
+
+      - name: Upload Video URL
+        uses: actions/upload-artifact@v4
+        with:
+          name: video-url
+          path: video_url.txt

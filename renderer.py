@@ -13,16 +13,16 @@ STORAGE_DIR = os.environ.get('STORAGE_DIR', os.path.join(PROJECT_ROOT, 'storage'
 os.makedirs(STORAGE_DIR, exist_ok=True)
 
 # The RENDER Function
-async def render(code: str, scene_name: str, job_id: str, project_id: str = None):
+async def render(code: str, job_id: str, project_id: str):
     job_dir = None
     try:
-        data = RenderRequest(code=code, scene_name=scene_name, job_id=job_id, project_id=project_id)
+        data = RenderRequest(code=code, job_id=job_id, project_id=project_id)
 
         job_dir, media_dir, py_path = get_job_dirs(job_id)
 
         create_dir(data, job_dir, media_dir, py_path)
         
-        run(["manim", "render", "--quality=l", "--fps=30", "--disable_caching", "--media_dir", media_dir, "--output_file", "final.mp4", py_path, data.scene_name], check=True)
+        run(["manim", "render", "--quality=l", "--fps=30", "--disable_caching", "--media_dir", media_dir, "--output_file", "final.mp4", py_path], check=True)
         
         output_path = os.path.join(media_dir, "videos", "scene", "480p30", "final.mp4")
         

@@ -3,9 +3,8 @@ from typing import Optional
 
 class RenderRequest(BaseModel):
     code: str
-    scene_name: str
     job_id: str
-    project_id: str | None = None
+    project_id: str
 
 class RenderResponse(BaseModel):
     video_url: str
