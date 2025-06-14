@@ -55,7 +55,7 @@ jobs:
           PROJECT_ID: ${{ github.event.inputs.project_id }}
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
-        run: python worker.py
+        run: python video_worker.py
 
       - name: Upload Video URL
         uses: actions/upload-artifact@v4
