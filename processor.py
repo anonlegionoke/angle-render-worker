@@ -20,7 +20,7 @@ def get_video_duration(file_path):
     output = subprocess.check_output(cmd).decode().strip()
     return float(output)
 
-def generate_thumbnails(video_url: str, prompt_id: str) -> list[str]:
+async def generate_thumbnails(video_url: str, prompt_id: str) -> list[str]:
     ensure_directories()
     signed_urls = []
     video_id = prompt_id
@@ -29,7 +29,7 @@ def generate_thumbnails(video_url: str, prompt_id: str) -> list[str]:
 
     try:
         # Check whether frames already exists for the prompt
-        existing_frames = supabase_client.storage.from_(SUPABASE_FRAMES_BUCKET).list(path=prompt_id)
+        existing_frames = await supabase_client.storage.from_(SUPABASE_FRAMES_BUCKET).list(path=prompt_id)
         
         if isinstance(existing_frames, list):
             frames = [ f for f in existing_frames
@@ -38,7 +38,7 @@ def generate_thumbnails(video_url: str, prompt_id: str) -> list[str]:
                 print("Frames already exist")
                 for frame in frames:
                     supabase_path = f"{video_id}/{frame['name']}"
-                    signed_url_response = supabase_client.storage.from_(SUPABASE_FRAMES_BUCKET).create_signed_url(
+                    signed_url_response = await supabase_client.storage.from_(SUPABASE_FRAMES_BUCKET).create_signed_url(
                         path=supabase_path,
                         expires_in=604800  # 7 days
                     )
@@ -83,7 +83,7 @@ def generate_thumbnails(video_url: str, prompt_id: str) -> list[str]:
                 file_data = f.read()
 
             supabase_path = f"{video_id}/{filename}"
-            upload_response = supabase_client.storage.from_(SUPABASE_FRAMES_BUCKET).upload(
+            upload_response = await supabase_client.storage.from_(SUPABASE_FRAMES_BUCKET).upload(
                 path=supabase_path,
                 file=file_data,
                 file_options={"content-type": "image/jpeg"}
@@ -93,7 +93,7 @@ def generate_thumbnails(video_url: str, prompt_id: str) -> list[str]:
                 print(f"Failed to upload {filename}: {upload_response['error']['message']}")
                 continue
 
-            signed_url_response = supabase_client.storage.from_(SUPABASE_FRAMES_BUCKET).create_signed_url(
+            signed_url_response = await supabase_client.storage.from_(SUPABASE_FRAMES_BUCKET).create_signed_url(
                 path=supabase_path,
                 expires_in=604800  # 7 days
             )
