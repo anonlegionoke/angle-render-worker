@@ -1,6 +1,5 @@
 import os
 import shutil
-from pydantic import InstanceOf
 import requests
 import subprocess
 from supabase_config import supabase_client, SUPABASE_FRAMES_BUCKET

@@ -3,6 +3,7 @@ import shutil
 from subprocess import run
 from dotenv import load_dotenv
 from models import RenderRequest
+from processor import generate_thumbnails
 from supabase_config import supabase_client, SUPABASE_BUCKET
 
 load_dotenv()
@@ -35,6 +36,8 @@ async def render(code: str, prompt_id: str, project_id: str):
                 print(f"Uploaded to Supabase: {video_url}")
                 await supabase_client.from_("prompts").update({"status": "completed", "video_url": video_url}).eq("prompt_id",prompt_id).execute()
                 print(f"Updated Prompts table with status completed: {video_url}")
+                await generate_thumbnails(video_url, prompt_id)
+                print(f"Generated thumbnails: {video_url}")
             except Exception as e:
                 print(f"Failed to upload to Supabase: {e}")
         else:
