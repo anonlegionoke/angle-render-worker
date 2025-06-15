@@ -33,6 +33,8 @@ async def render(code: str, prompt_id: str, project_id: str):
                 print(f"Uploading to Supabase: {video_url}")
                 video_url = await upload_to_supabase(output_path, prompt_id)
                 print(f"Uploaded to Supabase: {video_url}")
+                await supabase_client.from_("prompts").update({"status": "completed", "video_url": video_url}).eq("prompt_id",prompt_id).execute()
+                print(f"Updated Prompts table with status completed: {video_url}")
             except Exception as e:
                 print(f"Failed to upload to Supabase: {e}")
         else:
