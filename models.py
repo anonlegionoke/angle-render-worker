@@ -3,7 +3,7 @@ from typing import Optional
 
 class RenderRequest(BaseModel):
     code: str
-    job_id: str
+    prompt_id: str
     project_id: str
 
 class RenderResponse(BaseModel):

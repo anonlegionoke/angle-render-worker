@@ -13,12 +13,12 @@ STORAGE_DIR = os.environ.get('STORAGE_DIR', os.path.join(PROJECT_ROOT, 'storage'
 os.makedirs(STORAGE_DIR, exist_ok=True)
 
 # The RENDER Function
-async def render(code: str, job_id: str, project_id: str):
+async def render(code: str, prompt_id: str, project_id: str):
     job_dir = None
     try:
-        data = RenderRequest(code=code, job_id=job_id, project_id=project_id)
+        data = RenderRequest(code=code, prompt_id=prompt_id, project_id=project_id)
 
-        job_dir, media_dir, py_path = get_job_dirs(job_id)
+        job_dir, media_dir, py_path = get_job_dirs(prompt_id)
 
         create_dir(data, job_dir, media_dir, py_path)
         
@@ -31,7 +31,7 @@ async def render(code: str, job_id: str, project_id: str):
         if supabase_client:
             try:
                 print(f"Uploading to Supabase: {video_url}")
-                video_url = await upload_to_supabase(output_path, job_id)
+                video_url = await upload_to_supabase(output_path, prompt_id)
                 print(f"Uploaded to Supabase: {video_url}")
             except Exception as e:
                 print(f"Failed to upload to Supabase: {e}")
@@ -49,17 +49,17 @@ async def render(code: str, job_id: str, project_id: str):
 
 
 # Upload to Supabase
-async def upload_to_supabase(file_path: str, job_id: str) -> str:
+async def upload_to_supabase(file_path: str, prompt_id: str) -> str:
     """Upload a file to Supabase Storage and return a signed URL"""
     if not supabase_client:
         raise ValueError("Supabase client not initialized. Check your environment variables.")
 
-    file_name = f"video_{job_id}.mp4"
+    file_name = f"video_{prompt_id}.mp4"
 
     with open(file_path, 'rb') as f:
         file_data = f.read()
 
-    supabase_path = f"{job_id}/{file_name}"
+    supabase_path = f"{prompt_id}/{file_name}"
     response = supabase_client.storage.from_("manim-videos").upload(
         path=supabase_path,
         file=file_data,
@@ -81,8 +81,8 @@ async def upload_to_supabase(file_path: str, job_id: str) -> str:
 
 
 # Directory Management   
-def get_job_dirs(job_id):
-    job_dir = os.path.join(STORAGE_DIR, job_id)
+def get_job_dirs(prompt_id):
+    job_dir = os.path.join(STORAGE_DIR, prompt_id)
     media_dir = os.path.join(job_dir, "media")
     py_path = os.path.join(job_dir, "scene.py")
     return job_dir, media_dir, py_path

@@ -3,10 +3,10 @@ name: Angle Render Worker
 on:
   workflow_dispatch:
     inputs:
-      script_url:
+      code_url:
         description: "URL to user Python code file"
         required: true
-      job_id:
+      prompt_id:
         description: "Prompt ID"
         required: true
       project_id:
@@ -46,12 +46,12 @@ jobs:
           pip install -r requirements.txt
 
       - name: Download User Code
-        run: curl -L -o user_code.py "${{ github.event.inputs.script_url }}"
+        run: curl -L -o user_code.py "${{ github.event.inputs.code_url }}"
 
       - name: Run Worker
         env:
           CODE_FILE: user_code.py
-          JOB_ID: ${{ github.event.inputs.job_id }}
+          PROMPT_ID: ${{ github.event.inputs.prompt_id }}
           PROJECT_ID: ${{ github.event.inputs.project_id }}
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
