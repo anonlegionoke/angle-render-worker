@@ -55,4 +55,7 @@ jobs:
           PROJECT_ID: ${{ github.event.inputs.project_id }}
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+          SUPABASE_BUCKET: ${{ secrets.SUPABASE_BUCKET }}
+          SUPABASE_FRAMES_BUCKET: ${{ secrets.SUPABASE_FRAMES_BUCKET }}
+          STORAGE_DIR: ${{ secrets.STORAGE_DIR }}
         run: python video_worker.py

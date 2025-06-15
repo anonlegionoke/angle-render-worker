@@ -65,7 +65,7 @@ async def upload_to_supabase(file_path: str, prompt_id: str) -> str:
         file_data = f.read()
 
     supabase_path = f"{prompt_id}/{file_name}"
-    response = supabase_client.storage.from_("manim-videos").upload(
+    response = supabase_client.storage.from_(SUPABASE_BUCKET).upload(
         path=supabase_path,
         file=file_data,
         file_options={"content-type": "video/mp4"},
@@ -74,7 +74,7 @@ async def upload_to_supabase(file_path: str, prompt_id: str) -> str:
     if isinstance(response, dict) and response.get("error"):
         raise RuntimeError(f"Failed to upload: {response['error']['message']}")
 
-    signed_url_response = supabase_client.storage.from_("manim-videos").create_signed_url(
+    signed_url_response = supabase_client.storage.from_(SUPABASE_BUCKET).create_signed_url(
         path=supabase_path,
         expires_in=604800  # 7 days
     )
