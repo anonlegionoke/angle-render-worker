@@ -39,9 +39,7 @@ jobs:
             python3-gi \
             python3-cairocffi \
             ffmpeg \
-            texlive-latex-base \
-            texlive-fonts-recommended \
-            texlive-latex-extra \
+            texlive-full \
             dvipng
 
       - name: Install Python Dependencies
