@@ -31,16 +31,20 @@ jobs:
 
       - name: Install System Dependencies
         run: |
-              sudo apt-get update
-              sudo apt-get install -y \
-                libcairo2-dev \
-                libpango1.0-dev \
-                libgirepository1.0-dev \
-                python3-gi \
-                python3-cairocffi \
-                ffmpeg
+          sudo apt-get update
+          sudo apt-get install -y \
+            libcairo2-dev \
+            libpango1.0-dev \
+            libgirepository1.0-dev \
+            python3-gi \
+            python3-cairocffi \
+            ffmpeg \
+            texlive-latex-base \
+            texlive-fonts-recommended \
+            texlive-latex-extra \
+            dvipng
 
-      - name: Install Dependencies
+      - name: Install Python Dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
