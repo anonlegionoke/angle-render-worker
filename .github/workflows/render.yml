@@ -1,0 +1,61 @@
+name: Angle Render Worker
+
+on:
+  workflow_dispatch:
+    inputs:
+      code_url:
+        description: "URL to user Python code file"
+        required: true
+      prompt_id:
+        description: "Prompt ID"
+        required: true
+      project_id:
+        description: "Project ID"
+        required: true
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v3
+
+      - name: Install ffmpeg
+        run: sudo apt-get update && sudo apt-get install -y ffmpeg
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Install System Dependencies
+        run: |
+              sudo apt-get update
+              sudo apt-get install -y \
+                libcairo2-dev \
+                libpango1.0-dev \
+                libgirepository1.0-dev \
+                python3-gi \
+                python3-cairocffi \
+                ffmpeg
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Download User Code
+        run: curl -L -o user_code.py "${{ github.event.inputs.code_url }}"
+
+      - name: Run Worker
+        env:
+          CODE_FILE: user_code.py
+          PROMPT_ID: ${{ github.event.inputs.prompt_id }}
+          PROJECT_ID: ${{ github.event.inputs.project_id }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+          SUPABASE_BUCKET: ${{ secrets.SUPABASE_BUCKET }}
+          SUPABASE_FRAMES_BUCKET: ${{ secrets.SUPABASE_FRAMES_BUCKET }}
+          STORAGE_DIR: ${{ secrets.STORAGE_DIR }}
+        run: python video_worker.py

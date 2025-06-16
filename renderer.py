@@ -3,6 +3,7 @@ import shutil
 from subprocess import run
 from dotenv import load_dotenv
 from models import RenderRequest
+from processor import generate_thumbnails
 from supabase_config import supabase_client, SUPABASE_BUCKET
 
 load_dotenv()
@@ -13,16 +14,16 @@ STORAGE_DIR = os.environ.get('STORAGE_DIR', os.path.join(PROJECT_ROOT, 'storage'
 os.makedirs(STORAGE_DIR, exist_ok=True)
 
 # The RENDER Function
-async def render(code: str, scene_name: str, job_id: str, project_id: str = None):
+async def render(code: str, prompt_id: str, project_id: str):
     job_dir = None
     try:
-        data = RenderRequest(code=code, scene_name=scene_name, job_id=job_id, project_id=project_id)
+        data = RenderRequest(code=code, prompt_id=prompt_id, project_id=project_id)
 
-        job_dir, media_dir, py_path = get_job_dirs(job_id)
+        job_dir, media_dir, py_path = get_job_dirs(prompt_id)
 
         create_dir(data, job_dir, media_dir, py_path)
         
-        run(["manim", "render", "--quality=l", "--fps=30", "--disable_caching", "--media_dir", media_dir, "--output_file", "final.mp4", py_path, data.scene_name], check=True)
+        run(["manim", "render", "--quality=l", "--fps=30", "--disable_caching", "--media_dir", media_dir, "--output_file", "final.mp4", py_path], check=True)
         
         output_path = os.path.join(media_dir, "videos", "scene", "480p30", "final.mp4")
         
@@ -31,8 +32,12 @@ async def render(code: str, scene_name: str, job_id: str, project_id: str = None
         if supabase_client:
             try:
                 print(f"Uploading to Supabase: {video_url}")
-                video_url = await upload_to_supabase(output_path, job_id)
+                video_url = await upload_to_supabase(output_path, prompt_id)
                 print(f"Uploaded to Supabase: {video_url}")
+                supabase_client.from_("prompts").update({"status": "completed", "video_url": video_url}).eq("prompt_id",prompt_id).execute()
+                print(f"Updated Prompts table with status completed: {video_url}")
+                generate_thumbnails(video_url, prompt_id)
+                print(f"Generated thumbnails: {video_url}")
             except Exception as e:
                 print(f"Failed to upload to Supabase: {e}")
         else:
@@ -49,17 +54,17 @@ async def render(code: str, scene_name: str, job_id: str, project_id: str = None
 
 
 # Upload to Supabase
-async def upload_to_supabase(file_path: str, job_id: str) -> str:
+async def upload_to_supabase(file_path: str, prompt_id: str) -> str:
     """Upload a file to Supabase Storage and return a signed URL"""
     if not supabase_client:
         raise ValueError("Supabase client not initialized. Check your environment variables.")
 
-    file_name = f"video_{job_id}.mp4"
+    file_name = f"video_{prompt_id}.mp4"
 
     with open(file_path, 'rb') as f:
         file_data = f.read()
 
-    supabase_path = f"{job_id}/{file_name}"
+    supabase_path = f"{prompt_id}/{file_name}"
     response = supabase_client.storage.from_(SUPABASE_BUCKET).upload(
         path=supabase_path,
         file=file_data,
@@ -81,8 +86,8 @@ async def upload_to_supabase(file_path: str, job_id: str) -> str:
 
 
 # Directory Management   
-def get_job_dirs(job_id):
-    job_dir = os.path.join(STORAGE_DIR, job_id)
+def get_job_dirs(prompt_id):
+    job_dir = os.path.join(STORAGE_DIR, prompt_id)
     media_dir = os.path.join(job_dir, "media")
     py_path = os.path.join(job_dir, "scene.py")
     return job_dir, media_dir, py_path
