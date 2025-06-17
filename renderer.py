@@ -38,11 +38,11 @@ async def render(code: str, prompt_id: str, project_id: str):
         if supabase_client:
             try:
                 print(f"Uploading to Supabase: {video_url}")
-                video_url = await upload_to_supabase(output_path, prompt_id)
+                video_url = await upload_to_supabase(output_path, prompt_id, project_id)
                 print(f"Uploaded to Supabase: {video_url}")
                 supabase_client.from_("prompts").update({"status": "completed", "video_url": video_url}).eq("prompt_id",prompt_id).execute()
                 print(f"Updated Prompts table with status completed: {video_url}")
-                generate_thumbnails(video_url, prompt_id)
+                generate_thumbnails(video_url, prompt_id, project_id)
                 print(f"Generated thumbnails: {video_url}")
             except Exception as e:
                 print(f"Failed to upload to Supabase: {e}")
@@ -61,7 +61,7 @@ async def render(code: str, prompt_id: str, project_id: str):
 
 
 # Upload to Supabase
-async def upload_to_supabase(file_path: str, prompt_id: str) -> str:
+async def upload_to_supabase(file_path: str, prompt_id: str, project_id: str) -> str:
     """Upload a file to Supabase Storage and return a signed URL"""
     if not supabase_client:
         raise ValueError("Supabase client not initialized. Check your environment variables.")
@@ -71,7 +71,7 @@ async def upload_to_supabase(file_path: str, prompt_id: str) -> str:
     with open(file_path, 'rb') as f:
         file_data = f.read()
 
-    supabase_path = f"{prompt_id}/{file_name}"
+    supabase_path = f"{project_id}/{prompt_id}/{file_name}"
     response = supabase_client.storage.from_(SUPABASE_BUCKET).upload(
         path=supabase_path,
         file=file_data,

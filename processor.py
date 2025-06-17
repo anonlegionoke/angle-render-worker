@@ -20,7 +20,7 @@ def get_video_duration(file_path):
     output = subprocess.check_output(cmd).decode().strip()
     return float(output)
 
-def generate_thumbnails(video_url: str, prompt_id: str) -> list[str]:
+def generate_thumbnails(video_url: str, prompt_id: str, project_id: str) -> list[str]:
     ensure_directories()
     signed_urls = []
     video_id = prompt_id
@@ -37,7 +37,7 @@ def generate_thumbnails(video_url: str, prompt_id: str) -> list[str]:
             if frames:
                 print("Frames already exist")
                 for frame in frames:
-                    supabase_path = f"{video_id}/{frame['name']}"
+                    supabase_path = f"{project_id}/{video_id}/{frame['name']}"
                     signed_url_response = supabase_client.storage.from_(SUPABASE_FRAMES_BUCKET).create_signed_url(
                         path=supabase_path,
                         expires_in=604800  # 7 days
@@ -82,7 +82,7 @@ def generate_thumbnails(video_url: str, prompt_id: str) -> list[str]:
             with open(local_path, "rb") as f:
                 file_data = f.read()
 
-            supabase_path = f"{video_id}/{filename}"
+            supabase_path = f"{project_id}/{video_id}/{filename}"
             upload_response = supabase_client.storage.from_(SUPABASE_FRAMES_BUCKET).upload(
                 path=supabase_path,
                 file=file_data,
