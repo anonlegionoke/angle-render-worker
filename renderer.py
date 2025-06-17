@@ -23,10 +23,16 @@ async def render(code: str, prompt_id: str, project_id: str):
 
         create_dir(data, job_dir, media_dir, py_path)
         
-        run(["manim", "render", "--quality=l", "--fps=30", "--disable_caching", "--media_dir", media_dir, "--output_file", "final.mp4", py_path], check=True)
+        result = run(["manim", "render", "--quality=l", "--fps=30", "--disable_caching", "--media_dir", media_dir, "--output_file", "final.mp4", py_path], check=True)
         
+        if result.returncode != 0:
+            raise RuntimeError(f"Manim rendering failed:\n{result.stderr}")
+
         output_path = os.path.join(media_dir, "videos", "scene", "480p30", "final.mp4")
-        
+
+        if not os.path.exists(output_path):
+            raise RuntimeError(f"Manim did not generate the output video at {output_path}")
+
         video_url = output_path
 
         if supabase_client:
@@ -50,6 +56,7 @@ async def render(code: str, prompt_id: str, project_id: str):
     except Exception as e:
         if job_dir:
             cleanup_job_dir(job_dir)
+            supabase_client.from_("prompts").update({"status": "failed"}).eq("prompt_id",prompt_id).execute()
         raise RuntimeError(f"Failed to render: {str(e)}")
 
 
