@@ -1,33 +1,23 @@
-FROM python:3.12-slim
+FROM python:3.10-slim
 
-# Install system dependencies
 RUN apt-get update && apt-get install -y \
     ffmpeg \
     libcairo2-dev \
     libpango1.0-dev \
-    pkg-config \
-    python3-dev \
-    build-essential \
+    libgirepository1.0-dev \
+    python3-gi \
+    python3-cairocffi \
+    texlive-full \
+    git \
+    curl \
+    && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-# Set working directory
+COPY requirements.txt .
+RUN pip install --upgrade pip \
+    && pip install -r requirements.txt
+
+COPY video_worker.py /app/video_worker.py
 WORKDIR /app
 
-# Copy requirements first for better caching
-COPY requirements.txt .
-RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir -r requirements.txt
-
-# Copy the rest of the application
-COPY . .
-
-# Create necessary directories
-RUN mkdir -p public/thumbnails tmp
-
-# Set environment variables
-ENV PYTHONUNBUFFERED=1
-
-EXPOSE 8000
-
-# Use the same command as railway.toml for consistency
-CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["python", "video_worker.py"]
