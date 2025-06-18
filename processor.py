@@ -20,6 +20,11 @@ def get_video_duration(file_path):
     output = subprocess.check_output(cmd).decode().strip()
     return float(output)
 
+import os
+import subprocess
+import shutil
+import requests
+
 def generate_thumbnails(video_url: str, prompt_id: str, project_id: str) -> list[str]:
     ensure_directories()
     signed_urls = []
@@ -28,29 +33,21 @@ def generate_thumbnails(video_url: str, prompt_id: str, project_id: str) -> list
     output_dir = os.path.join(THUMBNAILS_DIR, video_id)
 
     try:
-        # Check whether frames already exists for the prompt
+        # Check if frames already exist
         existing_frames = supabase_client.storage.from_(SUPABASE_FRAMES_BUCKET).list(path=prompt_id)
-        
         if isinstance(existing_frames, list):
-            frames = [ f for f in existing_frames
-                      if video_id in f['name']]
+            frames = [f for f in existing_frames if video_id in f['name']]
             if frames:
-                print("Frames already exist")
                 for frame in frames:
                     supabase_path = f"{project_id}/{video_id}/{frame['name']}"
                     signed_url_response = supabase_client.storage.from_(SUPABASE_FRAMES_BUCKET).create_signed_url(
                         path=supabase_path,
-                        expires_in=604800  # 7 days
+                        expires_in=604800
                     )
-                    if isinstance(signed_url_response, dict) and signed_url_response.get("error"):
-                        print(f"Failed to create signed URL for {frame['name']}: {signed_url_response['error']['message']}")
-                        continue
-
-                    signed_urls.append(signed_url_response["signedURL"])
+                    if isinstance(signed_url_response, dict) and signed_url_response.get("signedURL"):
+                        signed_urls.append(signed_url_response["signedURL"])
                 return signed_urls
-        else:
-            []
-        
+
         if not video_url:
             raise ValueError("Missing video URL")
 
@@ -63,21 +60,16 @@ def generate_thumbnails(video_url: str, prompt_id: str, project_id: str) -> list
 
         duration = get_video_duration(input_path)
         frame_count = min(10, max(1, int(duration)))
-        
+
         os.makedirs(output_dir, exist_ok=True)
 
         output_pattern = os.path.join(output_dir, f"thumb_{video_id}_%02d.jpg")
 
-        select_filter = ",".join([
-        f"eq(n\,{int(i * (duration * 30) / (frame_count - 1))})"
-        for i in range(frame_count)
-        ])
-        select_expr = f"select='{select_filter}',setpts=N/FRAME_RATE/TB"
-
         cmd = [
-            'ffmpeg', '-i', input_path,
-            '-vf', select_expr,
-            f'fps={frame_count / duration:.2f}',
+            'ffmpeg',
+            '-i', input_path,
+            '-vf', f'fps={frame_count / duration:.8f}',
+            '-q:v', '2',
             '-vframes', str(frame_count),
             output_pattern
         ]
@@ -85,7 +77,7 @@ def generate_thumbnails(video_url: str, prompt_id: str, project_id: str) -> list
 
         for i in range(frame_count):
             filename = f"thumb_{video_id}_{str(i + 1).zfill(2)}.jpg"
-            local_path = os.path.join(THUMBNAILS_DIR, video_id, filename)
+            local_path = os.path.join(output_dir, filename)
 
             with open(local_path, "rb") as f:
                 file_data = f.read()
@@ -103,14 +95,10 @@ def generate_thumbnails(video_url: str, prompt_id: str, project_id: str) -> list
 
             signed_url_response = supabase_client.storage.from_(SUPABASE_FRAMES_BUCKET).create_signed_url(
                 path=supabase_path,
-                expires_in=604800  # 7 days
+                expires_in=604800
             )
-
-            if isinstance(signed_url_response, dict) and signed_url_response.get("error"):
-                print(f"Failed to create signed URL for {filename}: {signed_url_response['error']['message']}")
-                continue
-
-            signed_urls.append(signed_url_response["signedURL"])
+            if isinstance(signed_url_response, dict) and signed_url_response.get("signedURL"):
+                signed_urls.append(signed_url_response["signedURL"])
 
             os.remove(local_path)
 
@@ -120,7 +108,6 @@ def generate_thumbnails(video_url: str, prompt_id: str, project_id: str) -> list
         print(f"Error during thumbnail generation: {str(e)}")
         raise
     finally:
-        # Clean up temp files and directories
         if os.path.exists(input_path):
             os.remove(input_path)
         if os.path.exists(output_dir):
