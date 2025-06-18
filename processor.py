@@ -62,14 +62,22 @@ def generate_thumbnails(video_url: str, prompt_id: str, project_id: str) -> list
             shutil.copyfileobj(response.raw, f)
 
         duration = get_video_duration(input_path)
-        frame_count = max(1, int(duration // 2))
+        frame_count = min(10, max(1, int(duration)))
         
         os.makedirs(output_dir, exist_ok=True)
 
         output_pattern = os.path.join(output_dir, f"thumb_{video_id}_%02d.jpg")
+
+        select_filter = ",".join([
+        f"eq(n\,{int(i * (duration * 30) / (frame_count - 1))})"
+        for i in range(frame_count)
+        ])
+        select_expr = f"select='{select_filter}',setpts=N/FRAME_RATE/TB"
+
         cmd = [
             'ffmpeg', '-i', input_path,
-            '-vf', f'fps={frame_count / duration:.2f}',
+            '-vf', select_expr,
+            f'fps={frame_count / duration:.2f}',
             '-vframes', str(frame_count),
             output_pattern
         ]
