@@ -1,66 +1,49 @@
 # angle-render-worker
 
-A background rendering service for the Angle AI editor/generator. This service handles the rendering of mathematical animations and visualizations using Manim, providing a scalable and isolated environment for processing rendering requests from the main Angle NextJS application.
+A background rendering system for the Angle AI editor/generator, now powered by GitHub Actions. This service handles the rendering of mathematical animations and visualizations using Manim, running in a reproducible Docker environment, and is triggered via the GitHub API for scalable, isolated processing.
+
+## Architecture
+
+- **GitHub Actions-based:** Rendering jobs are executed as GitHub Actions workflows, triggered via the GitHub API.
+- **Dockerized Environment:** Uses a prebuilt Docker image with Manim, FFmpeg, texlive-full, and other dependencies for fast, consistent rendering.
+- **Supabase Integration:** Outputs (videos, thumbnails) are uploaded to Supabase Storage for persistence and sharing.
+- **Triggering Jobs:** The main Angle NextJS application triggers rendering by calling the GitHub API to dispatch the workflow, passing user code and metadata as inputs.
 
 ## Features
 
-- FastAPI-based REST API for handling rendering requests
+- GitHub Actions workflow for isolated, scalable rendering
 - Manim integration for mathematical animations
-- Docker containerization for easy deployment
-- Supabase integration for data persistence
+- Docker containerization for reproducible builds
+- Supabase integration for video and thumbnail storage
 
 ## Prerequisites
 
-- Python 3.12+
-- Docker (optional, for containerized deployment)
-- FFmpeg
-- Cairo and Pango development libraries
+- GitHub account and repository access
+- Python 3.10+ (for local development/testing)
+- Docker (for building/testing the image locally)
+- FFmpeg, Cairo, and Pango libraries (preinstalled in Docker)
+- Supabase project and credentials
 
-## Setup
+## How It Works
 
-### Local Development
+1. **Triggering a Render:**
+   - The Angle NextJS app (or any client) calls the GitHub API to dispatch the `Angle Render Worker` workflow, providing:
+     - `code_url`: URL to the user Python code file
+     - `prompt_id`: Unique prompt identifier
+     - `project_id`: Project identifier
+2. **Workflow Execution:**
+   - The workflow runs in a Docker container with all dependencies preinstalled.
+   - Downloads the user code, runs the rendering logic (`video_worker.py`), and uploads the resulting video and thumbnails to Supabase.
+3. **Results:**
+   - The workflow writes the output video URL to `video_url.txt` and updates Supabase with the results.
 
-1. Create and activate a virtual environment:
-```bash
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-```
+## GitHub Actions Workflow
 
-2. Install dependencies:
-```bash
-pip install -r requirements.txt
-```
-
-3. Create a `.env` file with your configuration:
-```bash
-cp .env.example .env  # If .env.example exists
-# Add your environment variables
-```
-
-4. Run the development server:
-```bash
-uvicorn src.app:app --reload
-```
-
-### Docker Deployment
-
-1. Build the Docker image:
-```bash
-docker build -t angle-render-worker .
-```
-
-2. Run the container:
-```bash
-docker run -p 8000:8000 angle-render-worker
-```
-
-## API Endpoints
-
-The service runs on port 8000 by default. API documentation is available at `/docs` when the server is running.
+The workflow file is located at `.github/workflows/render.yml`. It defines the job steps, including container setup, code download, rendering, and uploading results to Supabase.
 
 ## Integration with Angle
 
-This service is designed to work alongside the main Angle NextJS application. The main application should be configured to send rendering requests to this service's API endpoints.
+This service is designed to work as a background service for the main Angle NextJS application. The main Angle NextJS application should be configured to trigger the GitHub Actions workflow via the GitHub API, passing the required inputs. Results are stored in Supabase and can be accessed by the main application.
 
 Check Repo - https://github.com/anonlegionoke/angle
 
