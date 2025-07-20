@@ -20,11 +20,6 @@ def get_video_duration(file_path):
     output = subprocess.check_output(cmd).decode().strip()
     return float(output)
 
-import os
-import subprocess
-import shutil
-import requests
-
 def generate_thumbnails(video_url: str, prompt_id: str, project_id: str) -> list[str]:
     ensure_directories()
     signed_urls = []
