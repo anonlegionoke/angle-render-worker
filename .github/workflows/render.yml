@@ -23,7 +23,7 @@ jobs:
         password: ${{ secrets.GHCR_TOKEN }}
     steps:
       - name: Checkout Repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Download User Code
         run: curl -L -o user_code.py "${{ github.event.inputs.code_url }}"
