@@ -1,14 +1,7 @@
-from pydantic import BaseModel
-from typing import Optional
+from dataclasses import dataclass
 
-class RenderRequest(BaseModel):
+@dataclass
+class RenderRequest:
     code: str
     prompt_id: str
     project_id: str
-
-class RenderResponse(BaseModel):
-    video_url: str
-
-class FrameRequest(BaseModel):
-    videoUrl: Optional[str] = None
-    promptId: Optional[str] = None
