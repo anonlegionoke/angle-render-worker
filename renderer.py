@@ -56,7 +56,13 @@ async def render(code: str, prompt_id: str, project_id: str):
     except Exception as e:
         if job_dir:
             cleanup_job_dir(job_dir)
-            supabase_client.from_("prompts").update({"status": "failed"}).eq("prompt_id",prompt_id).execute()
+            if supabase_client:
+                try:
+                    supabase_client.from_("prompts").update({"status": "failed"}).eq("prompt_id", prompt_id).execute()
+                except Exception as update_err:
+                    print(f"Failed to update prompt status to failed: {update_err}")
+            else:
+                print("Supabase client not initialized, skipping prompt status update")
         raise RuntimeError(f"Failed to render: {str(e)}")
 
 
