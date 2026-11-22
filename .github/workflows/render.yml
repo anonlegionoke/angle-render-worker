@@ -38,6 +38,4 @@ jobs:
           SUPABASE_BUCKET: ${{ secrets.SUPABASE_BUCKET }}
           SUPABASE_FRAMES_BUCKET: ${{ secrets.SUPABASE_FRAMES_BUCKET }}
           STORAGE_DIR: ${{ secrets.STORAGE_DIR }}
-        run: |
-          pip install --upgrade supabase
-          python video_worker.py
+        run: python video_worker.py
